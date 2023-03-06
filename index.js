@@ -1,14 +1,8 @@
 const Brainly = require("./Brainly");
 const Roboguru = require("./Roboguru");
-const {
-  execSync
-} = require("child_process");
-const {
-  Telegraf
-} = require("telegraf");
-const {
-  message
-} = require("telegraf/filters");
+const { execSync } = require("child_process");
+const { Telegraf } = require("telegraf");
+const { message } = require("telegraf/filters");
 
 const TOKEN = "";
 
@@ -34,14 +28,20 @@ bot.on(message("text"), async (ctx) => {
       break;
     case "roboguru":
       if (args.length < 1) {
-        return ctx.reply(`Perintah tidak sesuai/lengkap!\nContoh:\n/roboguru tingkat\n/roboguru mapel\n/roboguru <id_tingkat> <id_mapel> <pertanyaan>`);
+        return ctx.reply(
+          `Perintah tidak sesuai/lengkap!\nContoh:\n/roboguru tingkat\n/roboguru mapel\n/roboguru <id_tingkat> <id_mapel> <pertanyaan>`
+        );
       }
       if (args[0].toLowerCase() == "tingkat") {
-        const list_tingkat = roboguru.grade.map(e => `${e.id}. ${e.name.toUpperCase()}`).join`\n`;
+        const list_tingkat = roboguru.grade.map(
+          (e) => `${e.id}. ${e.name.toUpperCase()}`
+        ).join`\n`;
         return ctx.reply(list_tingkat);
       }
       if (args[0].toLowerCase() == "mapel") {
-        const list_mapel = roboguru.subject.map(e => `${e.id}. ${e.name.toUpperCase()}`).join`\n`;
+        const list_mapel = roboguru.subject.map(
+          (e) => `${e.id}. ${e.name.toUpperCase()}`
+        ).join`\n`;
         return ctx.reply(list_mapel);
       }
 
@@ -50,42 +50,48 @@ bot.on(message("text"), async (ctx) => {
         let subject_id = Number(args.shift());
         let question = args.join` `;
 
-        if (isNaN(grade_id) || (grade_id < 1 || grade_id > 4)) {
+        if (isNaN(grade_id) || grade_id < 1 || grade_id > 4) {
           return ctx.reply("ID Tingkat tidak terdaftar!");
         }
-        if (isNaN(subject_id) || (subject_id < 1 || subject_id > 19)) {
+        if (isNaN(subject_id) || subject_id < 1 || subject_id > 19) {
           return ctx.reply("ID Mapel tidak terdaftar!");
         }
 
         try {
-          await ctx.reply("Mencari...")
-          let search_result = await roboguru.search(grade_id, subject_id, question);
+          await ctx.reply("Mencari...");
+          let search_result = await roboguru.search(
+            grade_id,
+            subject_id,
+            question
+          );
           for (let i = 0; i < search_result.length; i++) {
-            const {question, answers} = search_result[i];
+            const { question, answers } = search_result[i];
             let q_msg = `*QUESTION*\n${question.text}`;
             if (question.image.length == 0) {
               await ctx.sendMessage(q_msg, {
-                parse_mode: "Markdown"
+                parse_mode: "Markdown",
               });
             } else {
-              await ctx.sendMediaGroup(question.image.map((img, idx) => {
-                let image_data = {
-                  type: "photo",
-                  media: {},
-                  caption: idx > 0 || q_msg.length >= 500? "": q_msg,
-                  parse_mode: "Markdown",
-                };
-                if (img.startsWith('http')) image_data.media['url'] = img;
-                else {
-                  let id = Date.now();
-                  let _img = img.slice(img.indexOf(";base64,") + 8);
-                  image_data.media["source"] = Buffer.from(_img, "base64");
-                }
-                return image_data;
-              }));
+              await ctx.sendMediaGroup(
+                question.image.map((img, idx) => {
+                  let image_data = {
+                    type: "photo",
+                    media: {},
+                    caption: idx > 0 || q_msg.length >= 500 ? "" : q_msg,
+                    parse_mode: "Markdown",
+                  };
+                  if (img.startsWith("http")) image_data.media["url"] = img;
+                  else {
+                    let id = Date.now();
+                    let _img = img.slice(img.indexOf(";base64,") + 8);
+                    image_data.media["source"] = Buffer.from(_img, "base64");
+                  }
+                  return image_data;
+                })
+              );
               if (q_msg.length >= 500) {
                 await ctx.sendMessage(an_msg, {
-                  parse_mode: "Markdown"
+                  parse_mode: "Markdown",
                 });
               }
             }
@@ -95,35 +101,36 @@ bot.on(message("text"), async (ctx) => {
               let an_msg = `*ANSWER*\n${an.text}`;
               if (an.image.length == 0) {
                 await ctx.sendMessage(an_msg, {
-                  parse_mode: "Markdown"
+                  parse_mode: "Markdown",
                 });
               } else {
-                await ctx.sendMediaGroup(an.image.map((img, idx) => {
-                  let image_data = {
-                    type: "photo",
-                    media: {},
-                    caption: idx > 0 || an_msg.length >= 500 ? "": an_msg,
-                    parse_mode: "Markdown",
-                  };
-                  if (img.startsWith('http')) image_data.media['url'] = img;
-                  else {
-                    let id = Date.now();
-                    let _img = img.slice(img.indexOf(";base64,") + 8);
-                    image_data.media["source"] = Buffer.from(_img, "base64");
-                  }
-                  return image_data;
-                }));
+                await ctx.sendMediaGroup(
+                  an.image.map((img, idx) => {
+                    let image_data = {
+                      type: "photo",
+                      media: {},
+                      caption: idx > 0 || an_msg.length >= 500 ? "" : an_msg,
+                      parse_mode: "Markdown",
+                    };
+                    if (img.startsWith("http")) image_data.media["url"] = img;
+                    else {
+                      let id = Date.now();
+                      let _img = img.slice(img.indexOf(";base64,") + 8);
+                      image_data.media["source"] = Buffer.from(_img, "base64");
+                    }
+                    return image_data;
+                  })
+                );
                 if (an_msg.length >= 500) {
                   await ctx.sendMessage(an_msg, {
-                    parse_mode: "Markdown"
+                    parse_mode: "Markdown",
                   });
                 }
               }
             }
           }
-        } catch(err) {
-          console.log("Error:",
-            err);
+        } catch (err) {
+          console.log("Error:", err);
           await ctx.reply("Terjadi kesalahan saat mencari.");
         } finally {
           await ctx.reply("Pencarian selesai.");
@@ -141,7 +148,7 @@ bot.on(message("text"), async (ctx) => {
 
           if (d.attachments.length == 0) {
             await ctx.sendMessage(message, {
-              parse_mode: "Markdown"
+              parse_mode: "Markdown",
             });
           } else {
             await ctx.sendMediaGroup(
@@ -151,7 +158,7 @@ bot.on(message("text"), async (ctx) => {
                   media: {
                     url: img.url,
                   },
-                  caption: idx > 0 ? "": message,
+                  caption: idx > 0 ? "" : message,
                   parse_mode: "Markdown",
                 };
               })
@@ -163,16 +170,17 @@ bot.on(message("text"), async (ctx) => {
             let an_message = "*ANSWER*\n" + an.content;
             if (an.attachments.length == 0) {
               await ctx.sendMessage(an_message, {
-                parse_mode: "Markdown"
+                parse_mode: "Markdown",
               });
             }
             if (an.attachments.length == 1) {
               await ctx.sendPhoto(
                 {
-                  url: an.attachments[0].url
+                  url: an.attachments[0].url,
                 },
                 {
-                  caption: an_message, parse_mode: "Markdown"
+                  caption: an_message,
+                  parse_mode: "Markdown",
                 }
               );
             }
@@ -184,7 +192,7 @@ bot.on(message("text"), async (ctx) => {
                     media: {
                       url: img.url,
                     },
-                    caption: idx > 0 ? "": an_message,
+                    caption: idx > 0 ? "" : an_message,
                     parse_mode: "Markdown",
                   };
                 })
@@ -202,7 +210,7 @@ bot.on(message("text"), async (ctx) => {
       break;
     default:
       return;
-    }
-  });
+  }
+});
 
-  bot.launch();
+bot.launch();
