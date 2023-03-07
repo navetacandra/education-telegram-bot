@@ -10,6 +10,7 @@
   "author": "navetacandra <naveta.cand@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.0.3",
     "node-fetch": "^3.3.0",
     "puppeteer-core": "^5.3.1",
     "telegraf": "^4.11.2"

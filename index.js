@@ -1,10 +1,17 @@
+require('dotenv').config();
 const Brainly = require("./Brainly");
 const Roboguru = require("./Roboguru");
-const { execSync } = require("child_process");
-const { Telegraf } = require("telegraf");
-const { message } = require("telegraf/filters");
+const {
+  execSync
+} = require("child_process");
+const {
+  Telegraf
+} = require("telegraf");
+const {
+  message
+} = require("telegraf/filters");
 
-const TOKEN = "";
+const TOKEN = process.env.TOKEN;
 
 const brainly = new Brainly();
 const roboguru = new Roboguru();
@@ -15,7 +22,7 @@ const bot = new Telegraf(TOKEN);
 })();
 
 bot.on(message("text"), async (ctx) => {
-  let text = ctx.update.message.text;
+  let text = ctx.update.message.text ?? ctx.update.message.caption;
 
   if (!text.startsWith("/")) return;
   text = text.slice(1);
@@ -26,23 +33,23 @@ bot.on(message("text"), async (ctx) => {
     case "ping":
       ctx.reply("pong");
       break;
+    case "roboguru_grades":
+      const grades_list = roboguru.grade.map(
+        (e) => `${e.id}. ${e.name.toUpperCase()}`
+      ).join`\n`;
+      return await ctx.reply(grades_list);
+      break;
+    case "roboguru_subjects":
+      const subjects_list = roboguru.subject.map(
+        (e) => `${e.id}. ${e.name.toUpperCase()}`
+      ).join`\n`;
+      return await ctx.reply(subjects_list);
+      break;
     case "roboguru":
-      if (args.length < 1) {
+      if (args.length < 3) {
         return ctx.reply(
-          `Perintah tidak sesuai/lengkap!\nContoh:\n/roboguru tingkat\n/roboguru mapel\n/roboguru <id_tingkat> <id_mapel> <pertanyaan>`
+          `Perintah tidak sesuai/lengkap!\nContoh:\n/roboguru <id_tingkat> <id_mapel> <pertanyaan>`
         );
-      }
-      if (args[0].toLowerCase() == "tingkat") {
-        const list_tingkat = roboguru.grade.map(
-          (e) => `${e.id}. ${e.name.toUpperCase()}`
-        ).join`\n`;
-        return ctx.reply(list_tingkat);
-      }
-      if (args[0].toLowerCase() == "mapel") {
-        const list_mapel = roboguru.subject.map(
-          (e) => `${e.id}. ${e.name.toUpperCase()}`
-        ).join`\n`;
-        return ctx.reply(list_mapel);
       }
 
       if (args.length >= 3) {
@@ -65,7 +72,10 @@ bot.on(message("text"), async (ctx) => {
             question
           );
           for (let i = 0; i < search_result.length; i++) {
-            const { question, answers } = search_result[i];
+            const {
+              question,
+              answers
+            } = search_result[i];
             let q_msg = `*QUESTION*\n${question.text}`;
             if (question.image.length == 0) {
               await ctx.sendMessage(q_msg, {
@@ -77,7 +87,7 @@ bot.on(message("text"), async (ctx) => {
                   let image_data = {
                     type: "photo",
                     media: {},
-                    caption: idx > 0 || q_msg.length >= 500 ? "" : q_msg,
+                    caption: idx > 0 || q_msg.length >= 500 ? "": q_msg,
                     parse_mode: "Markdown",
                   };
                   if (img.startsWith("http")) image_data.media["url"] = img;
@@ -109,7 +119,7 @@ bot.on(message("text"), async (ctx) => {
                     let image_data = {
                       type: "photo",
                       media: {},
-                      caption: idx > 0 || an_msg.length >= 500 ? "" : an_msg,
+                      caption: idx > 0 || an_msg.length >= 500 ? "": an_msg,
                       parse_mode: "Markdown",
                     };
                     if (img.startsWith("http")) image_data.media["url"] = img;
@@ -158,7 +168,7 @@ bot.on(message("text"), async (ctx) => {
                   media: {
                     url: img.url,
                   },
-                  caption: idx > 0 ? "" : message,
+                  caption: idx > 0 ? "": message,
                   parse_mode: "Markdown",
                 };
               })
@@ -192,7 +202,7 @@ bot.on(message("text"), async (ctx) => {
                     media: {
                       url: img.url,
                     },
-                    caption: idx > 0 ? "" : an_message,
+                    caption: idx > 0 ? "": an_message,
                     parse_mode: "Markdown",
                   };
                 })
@@ -210,7 +220,7 @@ bot.on(message("text"), async (ctx) => {
       break;
     default:
       return;
-  }
-});
+    }
+  });
 
-bot.launch();
+  bot.launch();
